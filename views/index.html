@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>掲示板</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>掲示板</h1>
+  <form id="postForm">
+    <input type="text" name="content" placeholder="投稿内容を入力" required>
+    <button type="submit">投稿</button>
+  </form>
+  <ul id="posts"></ul>
+
+  <script>
+    async function loadPosts() {
+      const response = await fetch("/posts");
+      const posts = await response.json();
+      const postsList = document.getElementById("posts");
+      postsList.innerHTML = "";
+      posts.forEach(post => {
+        const li = document.createElement("li");
+        li.textContent = `${post.id}: ${post.content} (${post.timestamp})`;
+        postsList.appendChild(li);
+      });
+    }
+
+    document.getElementById("postForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const content = formData.get("content");
+
+      await fetch("/post", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: `content=${encodeURIComponent(content)}`
+      });
+
+      e.target.reset();
+      loadPosts();
+    });
+
+    setInterval(loadPosts, 1000); // 1秒ごとに投稿を読み込む
+    loadPosts();
+  </script>
+</body>
+</html>
